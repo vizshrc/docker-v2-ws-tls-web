@@ -53,7 +53,7 @@ docker run --name nginx -p 443:443 --net v2-net -v /root/docker-v2-ws-tls-web/do
 
 ​		说明：多挂载的/root目录，是因为/root是我webdav的目录（同时ssl证书也在/root下，如果不挂整				个/root，也别忘了挂载证书目录），我这个docker nginx只用来做v2+webdav，与宿主机的nginx分离				开，避免在不同的nginx下因完整的webdav功能的分歧而发生错误。配置调来调去调烦了。按需调整即				可。
 
-​		选看：有webdav请将.htpasswd同样放置在*/dockerwall/conf.d*目录下，配置中也写明同样的位置，否则							webdav服务起不来。
+​		选看：有webdav请将.htpasswd同样放置在*/dockerwall/conf.d*目录下，配置中也写明同样的位置，否则							webdav服务起不  来。
 
 」
 
