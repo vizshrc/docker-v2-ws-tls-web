@@ -5,6 +5,7 @@
 `cd ~`
 `git clone https://github.com/vizshrc/Full-WebDAV-Nginx-Docker.git `
 `cd docker-v2-ws-tls-web/dockerwall`
+
 按需修改config.json
 按需修改v2ray.conf
 
@@ -32,17 +33,17 @@
 ---- 
 
 补充几个命令：
-docker network ls
-- 查看现有的网桥
+	`docker network ls`
+	- 查看现有的网桥
 
-	docker network inspect bridge
-  - 查看bridge的具体信息，有哪些container连接了之类
+	`docker network inspect bridge`
+  	- 查看bridge的具体信息，有哪些container连接了之类
 
-	将v2s加入v2-net
--  docker network connect v2-net  v2s
-
-	将v2s断开v2-net
--  docker network disconnect v2-net v2s
+	 `docker network connect v2-net  v2s`
+  	- 将v2s加入v2-net
+	
+	`docker network disconnect v2-net v2s`
+	-  将v2s断开v2-net
 
 docker nginx可以选择占用宿主机的443端口，也可以另选端口。但是既然是为了掩饰，可以让宿主机的nginx做端口转发到docker nginx上，这样就还是443。
 
