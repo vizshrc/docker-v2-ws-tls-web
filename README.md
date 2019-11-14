@@ -2,9 +2,9 @@
 **涉及目录的地方一概使用绝对目录，而不是相对目录，否者会有错误**
 
 ## 0.准备工作
-`cd ~`
-`git clone https://github.com/vizshrc/Full-WebDAV-Nginx-Docker.git `
-`cd docker-v2-ws-tls-web/dockerwall`
+`cd ~
+ git clone https://github.com/vizshrc/Full-WebDAV-Nginx-Docker.git 
+ cd docker-v2-ws-tls-web/dockerwall`
 
 按需修改config.json
 按需修改v2ray.conf
