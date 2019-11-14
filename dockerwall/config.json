@@ -1,0 +1,29 @@
+{
+  "inbounds": [
+    {
+      "port": 16983,
+      "listen":"0.0.0.0",//不能只监听 127.0.0.1，需要让别的容器探测到开放了16983端口
+      "protocol": "vmess",
+      "settings": {
+        "clients": [
+          {
+            "id": "39c50d57-c26d-4922-b772-287129caac93",
+            "alterId": 64
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "wsSettings": {
+        "path": "/ray"
+        }
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "settings": {}
+    }
+  ]
+}
