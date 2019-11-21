@@ -29,6 +29,7 @@ docker network create v2-net
 
 
 ## 2.创建并启动v2
+**vizshrc/v2s是我的个人镜像，官方是v2ray/official**
 
 (使用nginx转发不需要映射端口，启动命令不要有点经验就想当然地写，记错了还浑然不知，说得就是我)  
 
