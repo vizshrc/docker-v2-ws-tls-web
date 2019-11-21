@@ -44,7 +44,7 @@ docker run --name v2s --net v2-net -v ~/docker-v2-ws-tls-web/ dockerwall/config.
 (-v参数表示挂载目录，按需挂载,自行调整)
 
 ```
-docker run --name nginx -p 443:443 --net v2-net -v /root/docker-v2-ws-tls-web/dockerwall/conf.d:/etc/nginx/conf.d:ro -v /root:/root/:ro vizshrc/nginx
+docker run --name nginx -p 443:443 --net v2-net -v /root/docker-v2-ws-tls-web/dockerwall/conf.d:/etc/nginx/conf.d:ro -v /var/www:/var/www:ro -v /root:/root/:ro vizshrc/nginx
 ```
 
 
@@ -92,4 +92,31 @@ docker run --name nginx -p 443:443 --net v2-net -v /root/docker-v2-ws-tls-web/do
 
 
 docker nginx可以选择占用宿主机的443端口，也可以另选端口。但是既然是为了掩饰，可以让宿主机的    		nginx做端口转发到docker nginx上，这样就还是443。
+端口转发样例：
+server {
+  listen 443 ssl;
+  ssl_certificate       /root/.acme.sh/yourdomain.com_ecc/yourdomain.com.cer;
+  ssl_certificate_key   /root/.acme.sh/yourdomain.com_ecc/fyourdomain.com.key;
+  ssl_protocols         TLSv1 TLSv1.1 TLSv1.2;
+  ssl_ciphers           HIGH:!aNULL:!MD5;
+  server_name           yourdomain.com;
+
+  root   /var/www/yourdomain.com;
+  index  index.php index.html index.htm;
+
+        location /ray { # 与 V2Ray 配置中的 path 保持一致
+        proxy_redirect off;
+#注意是https
+        proxy_pass https://127.0.0.1:4443;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $http_host;
+
+        # Show realip in v2ray access.log
+        proxy_set_header X-Real-IP $remote_addr;
+        # proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+}
 
