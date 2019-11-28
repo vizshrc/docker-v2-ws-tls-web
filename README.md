@@ -1,4 +1,4 @@
-#V2的Docker化使用（ws+tls+web）
+# V2的Docker化使用（ws+tls+web）  
 
 ***仅出于学习目的，勿做他用***
 
@@ -8,13 +8,9 @@
 
 使用方式：下载脚本动态按需生成配置即可：
 
-`dockerwall wget -N --no-check-certificate https://raw.githubusercontent.com/vizshrc/docker-v2-ws-tls-web/master/shconfig.sh && chmod +x shconfig.sh && bash shconfig.sh`
+`wget -N --no-check-certificate https://raw.githubusercontent.com/vizshrc/docker-v2-ws-tls-web/master/shconfig.sh && chmod +x shconfig.sh && bash shconfig.sh`
 
-
-
-
-
-
+-------
 
 
 
