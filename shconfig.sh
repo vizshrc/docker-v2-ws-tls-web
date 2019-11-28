@@ -61,12 +61,12 @@ apache2-utils
 mkdir  ./dockerwall&&cd ./dockerwall
 #$?等于1说明前一条命令执行失败
 [[ $? -eq 1 ]]&&echo "文件夹已存在，是否要删除旧的然后新建【yes or no】"\
-&&read -e -p "(默认：yes删除):" dir_del
+&&read -e -p "(默认：yes删除):" dir_del\
+&&[[ -z "${dir_del}" ]]&& dir_del="yes"\
 
-[[ -z "${dir_del}" ]]&& dir_del="yes"\
-&&rm -rf ./dockerwall&&mkdir dockerwall&&cd dockerwall
+[[ ${dir_del} == "yes" ]]&&rm -rf ./dockerwall&&mkdir dockerwall&&cd dockerwall
 #不删除文件夹，就先退出脚本
-[[ ${dir_del} != "yes" ]]&&exit 1
+[[ ${dir_del} == "no" ]]&&exit 1
 workdir=$(pwd)
 mkdir $(pwd)/conf.d
 echo "正在工作的目录$workdir"
