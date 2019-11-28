@@ -255,7 +255,7 @@ echo "那么你的证书路径是\
 /root/.acme.sh/${site_webdav}_ecc/${site_webdav}.cer;错误的路径将导致配置失败"
 echo "
 server {
-  listen 0.0.0.0:443 ssl;
+  listen 443 ssl;
   ssl_certificate       /root/.acme.sh/${site_webdav}_ecc/${site_webdav}.cer;
   ssl_certificate_key   /root/.acme.sh/${site_webdav}_ecc/${site_webdav}.key;
   ssl_protocols         TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
@@ -272,7 +272,7 @@ server {
         dav_ext_methods PROPFIND OPTIONS;
         create_full_put_path  on;
         dav_access user:rw group:r all:r;
-        auth_basic "Authorized Users Only";
+        auth_basic \"Authorized Users Only\";
         auth_basic_user_file ${workdir}/conf.d/.htpasswd;
         client_max_body_size 100m;
     }
@@ -295,7 +295,7 @@ else
 	&&read -e -p "例如/root/.acme.sh/web.com_ecc/web.com.key:" ssl_certificate_key\
 	&&echo "
 server {
-  listen 0.0.0.0:443 ssl;
+  listen 443 ssl;
   ssl_certificate       ${ssl_certificate};
   ssl_certificate_key   ${ssl_certificate_key};
   ssl_protocols         TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
@@ -312,7 +312,7 @@ server {
         dav_ext_methods PROPFIND OPTIONS;
         create_full_put_path  on;
         dav_access user:rw group:r all:r;
-        auth_basic "Authorized Users Only";
+        auth_basic \"Authorized Users Only\";
         auth_basic_user_file ${workdir}/conf.d/.htpasswd;
         client_max_body_size 100m;
     }
@@ -514,34 +514,54 @@ server {
 }
 "|sed '/^#/d;/^\s*$/d' > ${workdir}/dav-pass-docker.conf\
 && echo "生成dav-pass-docker.conf"
-  fi
+  fi 
 fi
 }
 
 
 
 #=============================================-=============================
+#启动服务
+start_service(){
+#1.docker-compose up -d
 
 #检查是否安装docker和compose,没有则询问安装
-# check_install_docker()
-# dpkg -l | grep -i docker
-# [[ $? -eq 1 ]] && read -e -p \
-# '(当前似乎未安装docker,是否现在安装？默认：yes)：' install_docker
-# if [[ ${install_docker} == "yes" ]];then
-# curl -fsSL get.docker.com -o get-docker.sh \
-# && chmod +x get-docker.sh && bash get-docker.sh
-
-# docker run hello-world
-# [[ $? -eq 0 ]] && echo "docker-ce（stable已安装）"
-
-# #安装docker compose
-# curl -L https://github.com/docker/compose/releases/download/1.24.1/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
-# chmod +x /usr/local/bin/docker-compose
-# fi
-# }
-
+ check_install_docker(){
+  dpkg -l | grep -i docker
+  [[ $? -eq 1 ]] && read -e -p \
+  "当前似乎未安装docker,是否现在安装？默认:yes)：" install_docker
+  [[ -z ${install_docker} ]] && install_docker="yes"
+  if [[ ${install_docker} == "yes" ]];then
+    curl -fsSL get.docker.com -o get-docker.sh\
+    && chmod +x get-docker.sh && bash get-docker.sh
+    docker run hello-world
+    [[ $? -eq 1 ]] && echo "docker-ce（stable安装失败）" && exit 1
+    #安装docker compose
+    curl -L https://github.com/docker/compose/releases/download/1.24.1/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+    chmod +x /usr/local/bin/docker-compose
+  fi
+ }
 
 
+#2.是否需要宿主机nginx转发服务
+#此时转发配置生成了，尚未移动到/etc/nginx/conf.d并重载宿主机nginx配置
+ check_install_nginx(){
+    if [[ ${proxy_pass_docker} == "yes" ]] ; then
+      echo "配置完成，现在实现宿主机nginx转发"
+      dpkg -l | grep -i nginx
+      [[ $? -eq 1 ]] && apt install nginx
+      #把配置拉过去并重启nignx
+      mv ${workdir}/*pass-docker.conf /etc/nginx/conf.d\
+      &&service nginx restart&&echo "nginx启动成功"
+    fi 
+  }
+
+
+
+check_install_docker
+check_install_nginx
+docker compose up -d
+}
 #=============================================-=============================
 #主程序 根据选择调用函数
 echo -e "======================================================"
@@ -570,6 +590,8 @@ echo -e "生成v2的docker-compose的配置?"
     [[ ${need_docker} == "yes" ]] && config_docker
 echo
 [[ ${port_host} != 443 ]] && config_host_nginx
+echo
+start_service
 echo
 
 #=============================================-=============================
