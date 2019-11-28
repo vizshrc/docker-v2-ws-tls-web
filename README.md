@@ -10,32 +10,7 @@
 
 `dockerwall wget -N --no-check-certificate https://raw.githubusercontent.com/vizshrc/docker-v2-ws-tls-web/master/shconfig.sh && chmod +x shconfig.sh && bash shconfig.sh`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+-------
 
 ##~~1.0版废弃（手动配置繁琐）~~
 
