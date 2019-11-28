@@ -551,8 +551,9 @@ start_service(){
       dpkg -l | grep -i nginx
       [[ $? -eq 1 ]] && apt install nginx
       #把配置拉过去并重启nignx
-      mv ${workdir}/*pass-docker.conf /etc/nginx/conf.d\
-      &&service nginx restart&&echo "nginx启动成功"
+      mv ${workdir}/*pass-docker.conf /etc/nginx/conf.d
+      [[ $? -eq 1 ]] && echo "移动配置到/etc/nginx/conf.d失败"
+      service nginx restart&&echo "nginx启动成功"
     fi 
   }
 
@@ -591,7 +592,9 @@ echo -e "生成v2的docker-compose的配置?"
 echo
 [[ ${port_host} != 443 ]] && config_host_nginx
 echo
-start_service
+    read -e -p "现在启动服务？"
+    [[ -z ${need_service} ]] && need_service="yes"
+    [[ ${need_service} == "yes" ]] && start_service
 echo
 
 #=============================================-=============================
