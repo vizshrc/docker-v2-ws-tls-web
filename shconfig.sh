@@ -23,10 +23,10 @@ check_sys(){
 	bit=`uname -m`
 
   #发行版本不符合处理（提示）
-  [[ ${release} ！= "debian" ]] && [[ ${release} ！= "ubuntu" ]]\
-   &&[[ ${release} != "centos" ]] && echo "
-   这个脚本不适合当前系统(推荐Debian:buster),将退出"\
-   &&exit 1
+  # [[ ${release} ！= "debian" ]] && [[ ${release} ！= "ubuntu" ]]\
+  #  &&[[ ${release} != "centos" ]] && echo "
+  #  这个脚本不适合当前系统(推荐Debian:buster),将退出"\
+  #  &&exit 1
 
   #对适用发行版本的处理（定义包管理器）
      ##为了好看(习惯了debian)，所以包管理器的变量名就为apt,即${apt}
