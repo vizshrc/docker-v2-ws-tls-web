@@ -1,40 +1,49 @@
 #!/bin/bash
-#使用环境 debian:buster  ROOT身份
-#检查环境，脚本是否适用，主要是linux包管理器不同，安装依赖时apt yum等
-#脚本测试环境不符合如mac，可注释检查部分
+#适用于debian系，如debian ubuntu
+#测试通过环境 debian:buster  ROOT身份
+#======================================================================
+#检查环境，脚本是否适用，主要是linux包管理器不同，安装依赖时用apt yum不同
 
-# check_sys(){
-# 	if [[ -f /etc/redhat-release ]]; then
-# 		release="centos"
-# 	elif cat /etc/issue | grep -q -E -i "debian"; then
-# 		release="debian"
-# 	elif cat /etc/issue | grep -q -E -i "ubuntu"; then
-# 		release="ubuntu"
-# 	elif cat /etc/issue | grep -q -E -i "centos|red hat|redhat"; then
-# 		release="centos"
-# 	elif cat /proc/version | grep -q -E -i "debian"; then
-# 		release="debian"
-# 	elif cat /proc/version | grep -q -E -i "ubuntu"; then
-# 		release="ubuntu"
-# 	elif cat /proc/version | grep -q -E -i "centos|red hat|redhat"; then
-# 		release="centos"
-#     fi
-# 	bit=`uname -m`
-# }
-# check_root(){
-# 	[[ $EUID != 0 ]] && echo -e "
-# 	当前不是ROOT账号，请切换再root使用，\
-# 	。" && exit 1
-# }
+check_sys(){
+	if [[ -f /etc/redhat-release ]]; then
+		release="centos"
+	elif cat /etc/issue | grep -q -E -i "debian"; then
+		release="debian"
+	elif cat /etc/issue | grep -q -E -i "ubuntu"; then
+		release="ubuntu"
+	elif cat /etc/issue | grep -q -E -i "centos|red hat|redhat"; then
+		release="centos"
+	elif cat /proc/version | grep -q -E -i "debian"; then
+		release="debian"
+	elif cat /proc/version | grep -q -E -i "ubuntu"; then
+		release="ubuntu"
+	elif cat /proc/version | grep -q -E -i "centos|red hat|redhat"; then
+		release="centos"
+    fi
+	bit=`uname -m`
 
-# check_sys
-# if [[ ${release} == "debian" ]]; then
-# 	echo "脚本可以使用"
-# elif [[ ${release} == "ubuntu" ]];then
-# 	echo "脚本只在debian:buster上测试，ubuntu可尝试使用"
-# else
-# 	echo "这个脚本只适合debian,你的系统是${release},将退出" && exit 1
-# fi
+  #发行版本不符合处理（提示）
+  [[ ${release} ！= "debian" ]] && [[ ${release} ！= "ubuntu" ]]\
+   &&[[ ${release} != "centos" ]] && echo "
+   这个脚本不适合当前系统(推荐Debian:buster),将退出"\
+   &&exit 1
+
+  #对适用发行版本的处理（定义包管理器）
+     ##为了好看(习惯了debian)，所以包管理器的变量名就为apt,即${apt}
+    case ${release} in
+      "debian") apt=apt-get;;
+      "ubuntu") apt=apt-get;;
+      "centos") apt=yum;;
+    esac 
+}
+
+
+check_root(){
+	[[ $EUID != 0 ]] && echo -e "
+	当前不是ROOT账号，请切换再root使用，\
+	。" && exit 1
+}
+
 
 
 #======================================================================
@@ -44,33 +53,34 @@
 #0.安装可能的依赖
 #sudo bash时，脚本内命令无需加sudo
 #用变量定义不必要的软件，回头方便删除
-#apt update
+#${apt} update
 
 build_install="
 uuid-runtime
 apache2-utils
 "
 
-#apt install -y ${build_install}
+#${apt} install -y ${build_install}
 
 #======================================================================
 #全局：设置工作目录dockerwall，不需要了删除目录即可
 #conf.d是docker nginx配置文件夹
 #其余文件默认放./dockerwall下面
+cd_workdir(){
 
-mkdir  ./dockerwall&&cd ./dockerwall
-#$?等于1说明前一条命令执行失败
-[[ $? -eq 1 ]]&&echo "文件夹已存在，是否要删除旧的然后新建【yes or no】"\
-&&read -e -p "(默认：yes删除):" dir_del\
-&&[[ -z "${dir_del}" ]]&& dir_del="yes"\
+  mkdir  ./dockerwall&&cd ./dockerwall
+  #$?等于1说明前一条命令执行失败
+  [[ $? -eq 1 ]]&&echo "文件夹已存在，是否要删除旧的然后新建【yes or no】"\
+  &&read -e -p "(默认：yes删除):" dir_del\
+  &&[[ -z "${dir_del}" ]]&& dir_del="yes"\
 
-[[ ${dir_del} == "yes" ]]&&rm -rf ./dockerwall&&mkdir dockerwall&&cd dockerwall
-#不删除文件夹，就先退出脚本
-[[ ${dir_del} == "no" ]]&&exit 1
-workdir=$(pwd)
-mkdir $(pwd)/conf.d
-echo "正在工作的目录$workdir"
-
+  [[ ${dir_del} == "yes" ]]&&rm -rf ./dockerwall&&mkdir dockerwall&&cd dockerwall
+  #不删除文件夹，就先退出脚本
+  [[ ${dir_del} == "no" ]]&&exit 1
+  workdir=$(pwd)
+  mkdir $(pwd)/conf.d
+  echo "正在工作的目录$workdir"
+}
 #======================================================================
 
 
@@ -549,7 +559,7 @@ start_service(){
     if [[ ${proxy_pass_docker} == "yes" ]] ; then
       echo "配置完成，现在实现宿主机nginx转发"
       dpkg -l | grep -i nginx
-      [[ $? -eq 1 ]] && apt install nginx
+      [[ $? -eq 1 ]] && ${apt} install -y nginx
       #把配置拉过去并重启nignx
       mv ${workdir}/*pass-docker.conf /etc/nginx/conf.d
       [[ $? -eq 1 ]] && echo "移动配置到/etc/nginx/conf.d失败"
@@ -564,7 +574,39 @@ check_install_nginx
 docker compose up -d
 }
 #=============================================-=============================
-#主程序 根据选择调用函数
+
+#输出必要信息一览表
+view_info(){
+  echo -e "==============================================="
+  [[ ${need_v2} == "yes" ]] && echo "
+  v2客户端连接信息
+  类型：VMess
+  地址：${v2web}
+  端口：443
+  UUID：${v2UUID}
+  类型：ws
+  路径(URL):${v2path}
+  TLS:1（打开）
+  "
+  echo -e "==============================================="
+  [[ ${need_webdav} == "yes" ]] \
+  && echo "
+  webDAV
+  访问网址：${site_webdav} 
+  用户名：${user_webdav}
+  密码：天知地知 你知我不知
+  "
+  echo -e "==============================================="
+}
+#=============================================-=============================
+
+
+#主程序 依序调用函数
+echo
+    check_sys
+    check_root
+    cd_workdir
+echo
 echo -e "======================================================"
 echo -e "||所有选项均为yes or no,注意大小写，否则配置可能失败||"
 echo -e "======================================================"
@@ -596,27 +638,11 @@ echo
     [[ -z ${need_service} ]] && need_service="yes"
     [[ ${need_service} == "yes" ]] && start_service
 echo
+    view_info
+echo
 
 #=============================================-=============================
-#最后输出必要信息一览表
-echo -e "==============================================="
-[[ ${need_v2} == "yes" ]] && echo "
-v2客户端连接信息
-类型：VMess
-地址：${v2web}
-端口：443
-UUID：${v2UUID}
-类型：ws
-路径(URL):${v2path}
-TLS:1（打开）
-"
-echo -e "==============================================="
-[[ ${need_webdav} == "yes" ]] \
-&& echo "
-webDAV
-访问网址：${site_webdav}
-用户名：${user_webdav}
-密码：天知地知 你知我不知
-"
-echo -e "==============================================="
-
+#author:vizshrc
+#脚本编写心得
+  #守则：清晰简要
+  #不做不必要的合法输入类的检查，只保证脚本完整执行，否则与方便配置的初衷背道而驰¬
