@@ -176,11 +176,11 @@ server {
         proxy_redirect off;
         proxy_pass http://v2s:${v2port};
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
-        proxy_set_header Host $http_host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host \$http_host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         }
 }
 "|sed '/^#/d;/^\s*$/d' > ${workdir}/conf.d/v2ray.conf
@@ -213,11 +213,11 @@ server {
         
         proxy_pass http://v2s:${v2port};
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
-        proxy_set_header Host $http_host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host \$http_host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         }
 }
 "|sed '/^#/d;/^\s*$/d' > ${workdir}/conf.d/v2ray.conf
@@ -388,11 +388,11 @@ server {
         proxy_redirect off;
         proxy_pass https://127.0.0.1:${port_host}; #只有这需要https
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
-        proxy_set_header Host $http_host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host \$http_host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         }
 }
 "|sed '/^#/d;/^\s*$/d' > ${workdir}/v2-pass-docker.conf\
@@ -411,14 +411,14 @@ server {
         proxy_redirect off;
         proxy_pass https://127.0.0.1:${port_host};
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
-        proxy_set_header Host $http_host;
+        proxy_set_header Host \$http_host;
 
         # Show realip in v2ray access.log
-        proxy_set_header X-Real-IP $remote_addr;
-        # proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Real-IP \$remote_addr;
+        # proxy_set_header Host \$host;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         }
 }
 "|sed '/^#/d;/^\s*$/d' > ${workdir}/dav-pass-docker.conf\
@@ -446,11 +446,11 @@ server {
         proxy_redirect off;       
         proxy_pass https://127.0.0.1:${port_host}; #只有这需要https
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
-        proxy_set_header Host $http_host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host \$http_host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         }
 }
 "|sed '/^#/d;/^\s*$/d' > ${workdir}/v2-pass-docker.conf\
@@ -469,14 +469,14 @@ server {
         proxy_redirect off;
         proxy_pass https://127.0.0.1:${port_host};
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
-        proxy_set_header Host $http_host;
+        proxy_set_header Host \$http_host;
 
         # Show realip in v2ray access.log
-        proxy_set_header X-Real-IP $remote_addr;
-        # proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Real-IP \$remote_addr;
+        # proxy_set_header Host \$host;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         }
 }
 "|sed '/^#/d;/^\s*$/d' > ${workdir}/dav-pass-docker.conf\
