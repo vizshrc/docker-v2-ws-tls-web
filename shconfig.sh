@@ -544,7 +544,7 @@ start_service(){
   if [[ ${install_docker} == "yes" ]];then
     curl -fsSL get.docker.com -o get-docker.sh\
     && chmod +x get-docker.sh && bash get-docker.sh
-    docker run hello-world
+    docker run --rm hello-world
     [[ $? -eq 1 ]] && echo "docker-ce（stable安装失败）" && exit 1
     #安装docker compose
     curl -L https://github.com/docker/compose/releases/download/1.24.1/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
