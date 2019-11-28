@@ -251,9 +251,42 @@ config_webdav(){
 
 if [[ ${check_sslpath} == "yes" ]] ; then
 #echo "你可能需要手动编辑稍后生成的配置里的ssl证书路径"
-echo "那么你的证书路径是/root/.acme.sh/${site_webdav}_ecc/${site_webdav}.cer;"
+echo "那么你的证书路径是\
+/root/.acme.sh/${site_webdav}_ecc/${site_webdav}.cer;错误的路径将导致配置失败"
+echo "
+server {
+  listen 0.0.0.0:443 ssl;
+  ssl_certificate       /root/.acme.sh/${site_webdav}_ecc/${site_webdav}.cer;
+  ssl_certificate_key   /root/.acme.sh/${site_webdav}_ecc/${site_webdav}.key;
+  ssl_protocols         TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
+  ssl_ciphers           HIGH:!aNULL:!MD5;
+  server_name           ${site_webdav};
 
-	#[[ ${check_sslpath} == "yes" ]] && echo "若自定义“cate路径"\
+    error_log /var/log/nginx/webdav.error.log error;
+    access_log  /var/log/nginx/webdav.access.log combined;
+    location / {
+        root ${content_webdav};
+        charset utf-8;
+        autoindex on;
+        dav_methods PUT DELETE MKCOL COPY MOVE;
+        dav_ext_methods PROPFIND OPTIONS;
+        create_full_put_path  on;
+        dav_access user:rw group:r all:r;
+        auth_basic "Authorized Users Only";
+        auth_basic_user_file ${workdir}/conf.d/.htpasswd;
+        client_max_body_size 100m;
+    }
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+   root   /usr/share/nginx/html; 
+   }
+}
+"|sed '/^#/d;/^\s*$/d' > ${workdir}/conf.d/davhttps.conf\
+&&echo "webdav设置已经生成"
+
+
+##若证书非默认路径，则生成自定义路径的webdav配置,
+#生成两份配置实在麻烦，其实应该将ssl证书路径单独拎出来定义
 else
   echo -e "请输入你的ssl_certificate路径"\
 	&&read -e -p "例如/root/.acme.sh/web.com_ecc/web.com.cer:" ssl_certificate\
@@ -288,8 +321,8 @@ server {
    root   /usr/share/nginx/html; 
    }
 }
-"|sed '/^#/d;/^\s*$/d' > ${workdir}/conf.d/davhttps.conf
-echo "webdav设置已经生成"
+"|sed '/^#/d;/^\s*$/d' > ${workdir}/conf.d/davhttps.conf\
+&&echo "webdav设置已经生成"
 fi
 
 }
