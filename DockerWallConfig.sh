@@ -104,9 +104,10 @@ config_depends(){
     ${apt} install -y ${depend_soft}
   #非支持系统(如mac)，尝试只生成配置，不安装具体服务
   else
-    uuidgen
+    uuidgen > uuidtest && rm uuidtest
     [[ $? -ne 0 ]] && echo "请安装uuidgen对应的包" && exit 1
-    htpasswd
+    #貌似重定向2>与&>没区别？？？
+    htpasswd -bc ./htpasswd testuser 1234565 &> htpasswdtest && rm -rf ./htpasswd
     [[ $? -ne 0 ]] && echo "请安装htpasswd对应的包" && exit 1
   fi
 }
@@ -389,11 +390,13 @@ config_docker(){
   #默认使用宿主机nginx转发docker nginx模式
   check_port_host(){
     read -e -p \
-    "(默认4443：请确保它没被占用):" port_host
+    "(不建议使用443 默认4443:" port_host
     [[ -z ${port_host} ]] && port_host=4443
-    #禁止占用宿主机443
-    if [[ ${port_host} == "443" ]] ; then
-      echo "请改用非443端口"&& check_port_host
+    #检查端口是否别的程序被占用（宿主机）
+
+    netstat -anp | grep ${port_host}
+    if [[ $? -eq 0 ]] ; then
+      echo "该端口已被占用，请改用别的端口"&& check_port_host
     fi
   };check_port_host
 
@@ -444,8 +447,8 @@ services:
 
 
 config_host_nginx(){
-echo "docker nginx使用的宿主机端口非443！\
-是否需要生成宿主机nginx转发流量到docker nginx的.conf配置"\
+echo "docker nginx使用的宿主机端口非443！"
+echo "是否生成宿主机nginx配置？并启动服务将流量转发到docker nginx中？"\
 &&read -e -p '(默认生成：yes)' proxy_pass_docker\
 &&[[ -z ${proxy_pass_docker} ]] && proxy_pass_docker=yes
 if [[ ${proxy_pass_docker} == "yes" ]] ; then
@@ -581,16 +584,19 @@ start_service(){
  check_install_docker(){
   dpkg -l | grep -i docker
   [[ $? -ne 0 ]] && read -e -p \
-  "当前似乎未安装docker,是否现在安装？默认:yes)：" install_docker
-  [[ -z ${install_docker} ]] && install_docker="yes"
+  "当前似乎未安装docker,是否现在安装？默认:yes)：" install_docker\
+  &&[[ -z ${install_docker} ]] && install_docker="yes"
+  #注意上面的逻辑，只有没安装才需要读入，没有&&连接将使这个读入失效
   if [[ ${install_docker} == "yes" ]];then
     curl -fsSL get.docker.com -o get-docker.sh\
     && chmod +x get-docker.sh && bash get-docker.sh
     docker run --rm hello-world
     [[ $? -ne 0 ]] && echo "docker-ce（stable安装失败）" && exit 1
     #安装docker compose
-    curl -L https://github.com/docker/compose/releases/download/1.24.1/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
-    chmod +x /usr/local/bin/docker-compose
+    curl -L https://github.com/docker/compose/releases/download/1.24.1/\
+    docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose\
+    &&chmod +x /usr/local/bin/docker-compose
+    [[ $? -ne 0 ]] && echo "docker-compose（1.24.1安装失败）" && exit 1
   fi
  }
 
