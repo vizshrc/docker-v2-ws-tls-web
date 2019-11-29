@@ -634,7 +634,7 @@ echo -e "生成v2的docker-compose的配置?"
 echo
 [[ ${port_host} != 443 ]] && config_host_nginx
 echo
-    read -e -p "现在启动服务？"
+    read -e -p "现在启动服务？" need_service
     [[ -z ${need_service} ]] && need_service="yes"
     [[ ${need_service} == "yes" ]] && start_service
 echo
