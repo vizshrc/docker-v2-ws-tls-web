@@ -571,9 +571,8 @@ fi
 #启动服务
 start_service(){
   #安装前确认系统符合与否
-  if [[ ${apt} != apt-get ]] || [[ ${apt} != yum ]] ; then 
-    echo "你的系统不是debian、ubuntu或centos,\
-    不能使用该脚本安装相应的服务(docker、compose、nginx)"\
+  if [[ ${apt} != "apt-get" ]] || [[ ${apt} != "yum" ]] ; then 
+    echo "你的系统不是debian、ubuntu或centos,\不能使用该脚本安装相应的服务(docker、compose、nginx)"\
     &&exit 1
   fi
 
