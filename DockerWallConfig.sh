@@ -400,6 +400,13 @@ config_docker(){
     fi
   };check_port_host
 
+#如果将docker nginx映射宿主机443，使用443：443
+  #使用127.0.0.1：443：443会让流量到不了V2
+  #使用前者将扩大攻击面即0.0.0.0，
+  #因此这里将判断映射端口，决定使用0.0.0.0还是127.0.0.1
+  #当非443，进行重定义
+  [[ ${port_host} != "443" ]] && port_host=127.0.0.1:${port_host}
+
   echo "
 #使用命令 docker-compose up -d
 #就会拉取镜像再创建我们所需要的镜像
@@ -413,7 +420,7 @@ services:
     container_name: v2nginx
     ports:
 #     - \"80:80\"
-      - \"127.0.0.1:${port_host}:443\"
+      - \"${port_host}:443\"
 
     volumes:
      - ${workdir}/conf.d:/etc/nginx/conf.d:ro
