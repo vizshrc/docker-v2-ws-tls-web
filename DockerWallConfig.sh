@@ -7,40 +7,51 @@
 check_sys(){
 	if [[ -f /etc/redhat-release ]]; then
 		release="centos"
-	elif cat /etc/issue | grep -q -E -i "debian"; then
+
+	elif [[ -f /etc/issue ]] && cat /etc/issue | grep -q -E -i "debian"; then
 		release="debian"
-	elif cat /etc/issue | grep -q -E -i "ubuntu"; then
+
+	elif [[ -f /etc/issue ]] && cat /etc/issue\
+   | grep -q -E -i "ubuntu"; then
 		release="ubuntu"
-	elif cat /etc/issue | grep -q -E -i "centos|red hat|redhat"; then
+
+	elif [[ -f /etc/issue ]] && cat /etc/issue\
+   | grep -q -E -i "centos|red hat|redhat"; then
 		release="centos"
-	elif cat /proc/version | grep -q -E -i "debian"; then
+
+	elif [[ -f /proc/version ]] && cat /proc/version\
+   | grep -q -E -i "debian"; then
 		release="debian"
-	elif cat /proc/version | grep -q -E -i "ubuntu"; then
+
+	elif [[ -f /proc/version ]] && cat /proc/version\
+   | grep -q -E -i "ubuntu"; then
 		release="ubuntu"
-	elif cat /proc/version | grep -q -E -i "centos|red hat|redhat"; then
+
+	elif [[ -f /proc/version ]] && cat /proc/version\
+   | grep -q -E -i "centos|red hat|redhat"; then
 		release="centos"
     fi
+
 	bit=`uname -m`
 
-  #发行版本不符合处理（提示）
-  # [[ ${release} ！= "debian" ]] && [[ ${release} ！= "ubuntu" ]]\
-  #  &&[[ ${release} != "centos" ]] && echo "
-  #  这个脚本不适合当前系统(推荐Debian:buster),将退出"\
-  #  &&exit 1
+  #发行版本不符合处理（提示并退出）
+    #两部分：生成配置（几乎不影响）
+    #        +安装服务（看系统，不合适的话在询问安装服务时退出）
+ 
 
   #对适用发行版本的处理（定义包管理器）
      ##为了好看(习惯了debian)，所以包管理器的变量名就为apt,即${apt}
     case ${release} in
       "debian") apt=apt-get;;
       "ubuntu") apt=apt-get;;
-      "centos") apt=yum;;
+      "centos") apt=yum;;  
     esac 
 }
 
 
 check_root(){
 	[[ $EUID != 0 ]] && echo -e "
-	当前不是ROOT账号，请切换再root使用，\
+	当前没有ROOT权限，\
 	。" && exit 1
 }
 
@@ -48,29 +59,14 @@ check_root(){
 
 #======================================================================
 
-
-
-#0.安装可能的依赖
-#sudo bash时，脚本内命令无需加sudo
-#用变量定义不必要的软件，回头方便删除
-#${apt} update
-
-build_install="
-uuid-runtime
-apache2-utils
-"
-
-#${apt} install -y ${build_install}
-
-#======================================================================
 #全局：设置工作目录dockerwall，不需要了删除目录即可
 #conf.d是docker nginx配置文件夹
 #其余文件默认放./dockerwall下面
 cd_workdir(){
 
   mkdir  ./dockerwall&&cd ./dockerwall
-  #$?等于1说明前一条命令执行失败
-  [[ $? -eq 1 ]]&&echo "文件夹已存在，是否要删除旧的然后新建【yes or no】"\
+  #$?不等于0说明前一条命令执行失败
+  [[ $? -ne 0 ]]&&echo "文件夹已存在，是否要删除旧的然后新建【yes or no】"\
   &&read -e -p "(默认：yes删除):" dir_del\
   &&[[ -z "${dir_del}" ]]&& dir_del="yes"\
 
@@ -81,6 +77,40 @@ cd_workdir(){
   mkdir $(pwd)/conf.d
   echo "正在工作的目录$workdir"
 }
+
+
+
+
+
+
+#======================================================================
+
+#0.安装生成配置可能的依赖
+#sudo bash时，脚本内命令无需加sudo
+#用变量定义不必要的软件，回头方便删除
+
+config_depends(){
+#如果是下列linux发行版就安装依赖软件
+  if [[ ${release} == "debian" || ${release} == "ubuntu"\
+   || ${release} == "centos" ]] ;then
+
+    ${apt} update
+
+    depend_soft="
+      uuid-runtime
+      apache2-utils
+    "
+
+    ${apt} install -y ${depend_soft}
+  #非支持系统(如mac)，尝试只生成配置，不安装具体服务
+  else
+    uuidgen
+    [[ $? -ne 0 ]] && echo "请安装uuidgen对应的包" && exit 1
+    htpasswd
+    [[ $? -ne 0 ]] && echo "请安装htpasswd对应的包" && exit 1
+  fi
+}
+
 #======================================================================
 
 
@@ -354,11 +384,18 @@ config_docker(){
   "(可定义v2ray的image，默认官方：v2ray/official):" image_v2ray
   [[ -z ${image_v2ray} ]] && image_v2ray=v2ray/official
   echo
-  echo "设置docker nginx（443）要映射的宿主机的端口"
-  read -e -p \
-  "(默认443：请确保它没被占用):" port_host
-  [[ -z ${port_host} ]] && port_host=443
+  echo "设置docker nginx（443）要映射（要占用）的宿主机的端口"
   
+  #默认使用宿主机nginx转发docker nginx模式
+  check_port_host(){
+    read -e -p \
+    "(默认4443：请确保它没被占用):" port_host
+    [[ -z ${port_host} ]] && port_host=4443
+    #禁止占用宿主机443
+    if [[ ${port_host} == "443" ]] ; then
+      echo "请改用非443端口"&& check_port_host
+    fi
+  };check_port_host
 
   echo "
 #使用命令 docker-compose up -d
@@ -533,19 +570,25 @@ fi
 #=============================================-=============================
 #启动服务
 start_service(){
-#1.docker-compose up -d
+  #安装前确认系统符合与否
+  if [[ ${apt} != apt-get ]] || [[ ${apt} != yum ]] ; then 
+    echo "你的系统不是debian、ubuntu或centos,\
+    不能使用该脚本安装相应的服务(docker、compose、nginx)"\
+    &&exit 1
+  fi
 
+#1.docker-compose up -d
 #检查是否安装docker和compose,没有则询问安装
  check_install_docker(){
   dpkg -l | grep -i docker
-  [[ $? -eq 1 ]] && read -e -p \
+  [[ $? -ne 0 ]] && read -e -p \
   "当前似乎未安装docker,是否现在安装？默认:yes)：" install_docker
   [[ -z ${install_docker} ]] && install_docker="yes"
   if [[ ${install_docker} == "yes" ]];then
     curl -fsSL get.docker.com -o get-docker.sh\
     && chmod +x get-docker.sh && bash get-docker.sh
     docker run --rm hello-world
-    [[ $? -eq 1 ]] && echo "docker-ce（stable安装失败）" && exit 1
+    [[ $? -ne 0 ]] && echo "docker-ce（stable安装失败）" && exit 1
     #安装docker compose
     curl -L https://github.com/docker/compose/releases/download/1.24.1/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
     chmod +x /usr/local/bin/docker-compose
@@ -559,10 +602,10 @@ start_service(){
     if [[ ${proxy_pass_docker} == "yes" ]] ; then
       echo "配置完成，现在实现宿主机nginx转发"
       dpkg -l | grep -i nginx
-      [[ $? -eq 1 ]] && ${apt} install -y nginx
+      [[ $? -ne 0 ]] && ${apt} install -y nginx
       #把配置拉过去并重启nignx
       mv ${workdir}/*pass-docker.conf /etc/nginx/conf.d
-      [[ $? -eq 1 ]] && echo "移动配置到/etc/nginx/conf.d失败"
+      [[ $? -ne 0 ]] && echo "移动配置到/etc/nginx/conf.d失败" && exit 1
       service nginx restart&&echo "nginx启动成功"
     fi 
   }
@@ -606,6 +649,7 @@ echo
     check_sys
     check_root
     cd_workdir
+    config_depends
 echo
 echo -e "======================================================"
 echo -e "||所有选项均为yes or no,注意大小写，否则配置可能失败||"
@@ -634,7 +678,8 @@ echo -e "生成v2的docker-compose的配置?"
 echo
 [[ ${port_host} != 443 ]] && config_host_nginx
 echo
-    read -e -p "现在启动服务？" need_service
+echo -e "现在启动服务？"
+    read -e -p "(默认：yes):" need_service
     [[ -z ${need_service} ]] && need_service="yes"
     [[ ${need_service} == "yes" ]] && start_service
 echo
