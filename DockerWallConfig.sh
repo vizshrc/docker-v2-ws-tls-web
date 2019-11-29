@@ -626,7 +626,7 @@ start_service(){
 
 check_install_docker
 check_install_nginx
-docker-compose up -d
+docker-compose up -d && echo 配置成功！试试看吧！&& rm ./$0
 }
 #=============================================-=============================
 
