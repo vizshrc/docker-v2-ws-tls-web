@@ -8,7 +8,7 @@
 
 使用方式：下载脚本动态按需生成配置即可：
 
-`wget -N --no-check-certificate https://raw.githubusercontent.com/vizshrc/docker-v2-ws-tls-web/master/shconfig.sh && chmod +x shconfig.sh && bash shconfig.sh`
+`wget -N --no-check-certificate https://raw.githubusercontent.com/vizshrc/docker-v2-ws-tls-web/master/DockerWallConfig.sh && chmod +x DockerWallConfig.sh && bash DockerWallConfig.sh`
 
 -------
 
@@ -16,7 +16,7 @@
 
 
 
-##~~1.0版废弃（手动配置繁琐）~~
+## ~~1.0版废弃（手动配置繁琐）~~
 
 ## ~~0.准备工作~~
 
