@@ -586,7 +586,7 @@ server {
 
         location / { 
         proxy_redirect off;
-        proxy_pass https://127.0.0.1:${port_host};
+        proxy_pass https://${port_host};
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
@@ -648,6 +648,7 @@ start_service(){
       mv ${workdir}/*pass-docker.conf /etc/nginx/conf.d
       [[ $? -ne 0 ]] && echo_RedFont "移动配置到/etc/nginx/conf.d失败" && exit 1
       service nginx restart&&echo "nginx启动成功"
+      [[ $? -ne 0 ]] && echo_RedFont "nginx启动失败，请检查宿主机ningx配置" && exit 1
     fi 
   }
 
