@@ -108,10 +108,15 @@ config_depends(){
    || ${release} == "centos" ]] ;then
 
     ${apt} update
-
-    depend_soft="
+    #不同系统软件包名可能不同,
+      #用来查询已安装软件包的命令也不同，分别是dpkg -l和rpm -qa，用${dpkg}表示
+    [[ ${apt} == "apt-get" ]] && dpkg="dpkg -l" && depend_soft="
       uuid-runtime
       apache2-utils
+    "
+    [[ ${apt} == "yum" ]] && dpkg="rpm -qa" && depend_soft="
+      
+      httpd-tools
     "
 
     ${apt} install -y ${depend_soft}
@@ -618,7 +623,7 @@ start_service(){
 #1.docker-compose up -d
 #检查是否安装docker和compose,没有则询问安装
  check_install_docker(){
-  dpkg -l | grep -i docker
+  ${dpkg} | grep -i docker
   [[ $? -ne 0 ]] && read -e -p \
   "当前似乎未安装docker,是否现在安装？默认:yes)：" install_docker\
   &&[[ -z ${install_docker} ]] && install_docker="yes"
@@ -642,7 +647,7 @@ start_service(){
  check_install_nginx(){
     if [[ ${proxy_pass_docker} == "yes" ]] ; then
       echo "配置完成，现在实现宿主机nginx转发"
-      dpkg -l | grep -i nginx
+      ${dpkg} | grep -i nginx
       [[ $? -ne 0 ]] && ${apt} install -y nginx
       #把配置拉过去并重启nignx
       mv ${workdir}/*pass-docker.conf /etc/nginx/conf.d
