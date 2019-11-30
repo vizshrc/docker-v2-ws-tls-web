@@ -505,7 +505,7 @@ server {
 ##
         location ${v2path} { # 与 V2 配置中的 path 保持一致
         proxy_redirect off;
-        proxy_pass https://127.0.0.1:${port_host}; #只有这需要https
+        proxy_pass https://${port_host}; #只有这需要https
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
@@ -528,7 +528,7 @@ server {
 
         location / { 
         proxy_redirect off;
-        proxy_pass https://127.0.0.1:${port_host};
+        proxy_pass https://${port_host};
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
@@ -563,7 +563,7 @@ server {
 #下面是v2ray
         location ${v2path} { # 与 V2Ray 配置中的 path 保持一致
         proxy_redirect off;       
-        proxy_pass https://127.0.0.1:${port_host}; #只有这需要https
+        proxy_pass https://${port_host}; #只有这需要https
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
