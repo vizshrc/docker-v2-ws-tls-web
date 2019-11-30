@@ -59,14 +59,15 @@ check_root(){
 
 #======================================================================
 
-#全局：设置工作目录dockerwall，不需要了删除目录即可
-#conf.d是docker nginx配置文件夹
-#其余文件默认放./dockerwall下面
+#全局：
+  #1.设置工作目录dockerwall，不需要了删除目录即可
+    #conf.d是docker nginx配置文件夹
+    #其余文件默认放./dockerwall下面
 cd_workdir(){
 
   mkdir  ./dockerwall&&cd ./dockerwall
   #$?不等于0说明前一条命令执行失败
-  [[ $? -ne 0 ]]&&echo "文件夹已存在，是否要删除旧的然后新建【yes or no】"\
+  [[ $? -ne 0 ]]&&echo_YellowFont "文件夹已存在，是否要删除旧的然后新建【yes or no】"\
   &&read -e -p "(默认：yes删除):" dir_del\
   &&[[ -z "${dir_del}" ]]&& dir_del="yes"\
 
@@ -78,8 +79,20 @@ cd_workdir(){
   echo "正在工作的目录$workdir"
 }
 
-
-
+  
+  #2.优化shell脚本，设置Font_color,注意只能在使用echo时使用
+echo_GreenFont(){
+  #一般标志succeed
+  echo -e "\033[32m$1\033[0m"
+}
+echo_RedFont(){
+  #一般代表Error
+  echo -e "\033[31m$1\033[0m"
+}
+echo_YellowFont(){
+  #一般意味warn
+  echo -e "\033[33m$1\033[0m"
+}
 
 
 
@@ -105,10 +118,10 @@ config_depends(){
   #非支持系统(如mac)，尝试只生成配置，不安装具体服务
   else
     uuidgen > uuidtest && rm uuidtest
-    [[ $? -ne 0 ]] && echo "请安装uuidgen对应的包" && exit 1
+    [[ $? -ne 0 ]] && echo_RedFont "请安装uuidgen对应的包" && exit 1
     #貌似重定向2>与&>没区别？？？
     htpasswd -bc ./htpasswd testuser 1234565 &> htpasswdtest && rm -rf ./htpasswd
-    [[ $? -ne 0 ]] && echo "请安装htpasswd对应的包" && exit 1
+    [[ $? -ne 0 ]] && echo_RedFont "请安装htpasswd对应的包" && exit 1
   fi
 }
 
@@ -126,7 +139,7 @@ config_v2(){
 check_port(){
 read -e -p "请定义v2的inbound端口[1~65556]:" v2port\
 && [[ ${v2port} -lt 1 ]] || [[ ${v2port} -gt 65535 ]]\
-&& echo "端口错误请重新输入"&& check_port
+&& echo_RedFont "端口错误请重新输入"&& check_port
 };check_port
 echo "========================"
 
@@ -173,7 +186,7 @@ echo "
   ]
 }
 "|sed '/^#/d;/^\s*$/d' > config.json
-echo "已经生成v2ray的启动配置（config.json）"
+echo_GreenFont "已经生成v2ray的启动配置（config.json）"
 }
 
 
@@ -197,9 +210,18 @@ echo -e "ssl证书是否用acme.sh申请？且位于/root/.acme目录下？"
 	read -e -p "(默认：yes):" check_sslpath
 	[[ -z "${check_sslpath}" ]] && check_sslpath="yes"
 if [[ ${check_sslpath} == "yes" ]] ; then
-#echo "你可能需要手动编辑稍后生成的配置里的ssl证书路径"
-echo "那么你的证书路径是/root/.acme.sh/${v2web}_ecc/${v2web}.cer"\
-&&echo "如果不正确说明配置失败"
+
+
+#必须检查证书是否存在
+#那么你的证书路径是/root/.acme.sh/${v2web}_ecc/${v2web}.cer
+  if [[ -f /root/.acme.sh/${v2web}_ecc/${v2web}.cer ]]\
+    && [[ -f /root/.acme.sh/${v2web}_ecc/${v2web}.key ]] ; then
+      echo "证书路径正确"
+  else
+    echo_RedFont "未找到证书，请检查证书路径是否有误并重新配置"&&exit 1
+  fi
+
+#证书没问题则生成配置
 echo "
 server {
   listen 0.0.0.0:443 ssl;
@@ -230,10 +252,17 @@ server {
 ##如果ssl证书地址有变则自定义
 else
 	echo -e "请输入你的ssl_certificate路径"
-	read -e -p "例如/root/.acme.sh/web.com_ecc/web.com.cer" ssl_certificate
+	read -e -p "例如/root/.acme.sh/web.com_ecc/web.com.cer :" ssl_certificate
 	echo
 	echo -e "请输入你的ssl_certificate_key路径"
-	read -e -p "例如/root/.acme.sh/web.com_ecc/web.com.key" ssl_certificate_key
+	read -e -p "例如/root/.acme.sh/web.com_ecc/web.com.key :" ssl_certificate_key
+  #开始检查证书,不合法直接退出
+    if [[ -f ${ssl_certificate} ]] && [[ -f ${ssl_certificate} ]] ; then
+      echo "证书路径正确"
+    else
+      echo_RedFont "未找到证书，请检查证书路径是否有误并重新配置"&&exit 1
+    fi
+
 	echo "
 server {
   listen 0.0.0.0:443 ssl;
@@ -265,7 +294,7 @@ server {
 fi
 
 
-echo "已经生成nginx关于v2ray的配置（v2ray.conf）"
+echo_GreenFont "已经生成nginx关于v2ray的配置（v2ray.conf）"
 }
 
 
@@ -323,17 +352,17 @@ server {
    }
 }
 "|sed '/^#/d;/^\s*$/d' > ${workdir}/conf.d/davhttps.conf\
-&&echo "webdav设置已经生成"
+&&echo_GreenFont "webdav设置已经生成"
 
 
 ##若证书非默认路径，则生成自定义路径的webdav配置,
 #生成两份配置实在麻烦，其实应该将ssl证书路径单独拎出来定义
 else
   echo -e "请输入你的ssl_certificate路径"\
-	&&read -e -p "例如/root/.acme.sh/web.com_ecc/web.com.cer:" ssl_certificate\
+	&&read -e -p "例如/root/.acme.sh/web.com_ecc/web.com.cer :" ssl_certificate\
 	&&echo\
 	&&echo -e "请输入你的ssl_certificate_key路径"\
-	&&read -e -p "例如/root/.acme.sh/web.com_ecc/web.com.key:" ssl_certificate_key\
+	&&read -e -p "例如/root/.acme.sh/web.com_ecc/web.com.key :" ssl_certificate_key\
 	&&echo "
 server {
   listen 443 ssl;
@@ -363,7 +392,7 @@ server {
    }
 }
 "|sed '/^#/d;/^\s*$/d' > ${workdir}/conf.d/davhttps.conf\
-&&echo "webdav设置已经生成"
+&&echo_GreenFont "webdav设置已经生成"
 fi
 
 }
@@ -396,7 +425,7 @@ config_docker(){
 
     netstat -anp | grep ${port_host}
     if [[ $? -eq 0 ]] ; then
-      echo "该端口已被占用，请改用别的端口"&& check_port_host
+      echo_RedFont "该端口已被占用，请改用别的端口"&& check_port_host
     fi
   };check_port_host
 
@@ -454,8 +483,8 @@ services:
 
 
 config_host_nginx(){
-echo "docker nginx使用的宿主机端口非443！"
-echo "是否生成宿主机nginx配置？并启动服务将流量转发到docker nginx中？"\
+echo_YellowFont "docker nginx使用的宿主机端口非443！"
+echo_YellowFont "是否生成宿主机nginx配置？并启动服务将流量转发到docker nginx中？"\
 &&read -e -p '(默认生成：yes)' proxy_pass_docker\
 &&[[ -z ${proxy_pass_docker} ]] && proxy_pass_docker=yes
 if [[ ${proxy_pass_docker} == "yes" ]] ; then
@@ -486,7 +515,7 @@ server {
         }
 }
 "|sed '/^#/d;/^\s*$/d' > ${workdir}/v2-pass-docker.conf\
-&&echo "生成v2-pass-docker"
+&&echo_GreenFont "生成v2-pass-docker"
 #**********若使用webDAV，这里顺便生成的转发配置1**************
     [[ ${need_webdav} == "yes" ]]&&echo "
 server {
@@ -512,7 +541,7 @@ server {
         }
 }
 "|sed '/^#/d;/^\s*$/d' > ${workdir}/dav-pass-docker.conf\
-&&echo "生成dav-pass-docker"
+&&echo_GreenFont "生成dav-pass-docker"
   #fi
 
 
@@ -544,7 +573,7 @@ server {
         }
 }
 "|sed '/^#/d;/^\s*$/d' > ${workdir}/v2-pass-docker.conf\
-&&echo "生成v2-pass-docker.conf"
+&&echo_GreenFont "生成v2-pass-docker.conf"
   #***********也顺便生成webdav宿主机转发配置2*****************
   [[ ${need_webdav} == "yes" ]]&&echo "
 server {
@@ -570,7 +599,7 @@ server {
         }
 }
 "|sed '/^#/d;/^\s*$/d' > ${workdir}/dav-pass-docker.conf\
-&& echo "生成dav-pass-docker.conf"
+&& echo_GreenFont "生成dav-pass-docker.conf"
   fi 
 fi
 }
@@ -582,7 +611,7 @@ fi
 start_service(){
   #安装前确认系统符合与否
   if [[ ${apt} != "apt-get" ]] && [[ ${apt} != "yum" ]] ; then 
-    echo "你的系统不是debian、ubuntu或centos,\不能使用该脚本安装相应的服务(docker、compose、nginx)"\
+    echo_RedFont "你的系统不是debian、ubuntu或centos,不能使用该脚本安装相应的服务(docker、compose、nginx)"\
     &&exit 1
   fi
 
@@ -598,12 +627,12 @@ start_service(){
     curl -fsSL get.docker.com -o get-docker.sh\
     && chmod +x get-docker.sh && bash get-docker.sh
     docker run --rm hello-world
-    [[ $? -ne 0 ]] && echo "docker-ce（stable安装失败）" && exit 1
+    [[ $? -ne 0 ]] && echo_RedFont "docker-ce（stable安装失败）" && exit 1
     #安装docker compose
     curl -L https://github.com/docker/compose/releases/download/1.24.1/\
     docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose\
     &&chmod +x /usr/local/bin/docker-compose
-    [[ $? -ne 0 ]] && echo "docker-compose（1.24.1安装失败）" && exit 1
+    [[ $? -ne 0 ]] && echo_RedFont "docker-compose（1.24.1安装失败）" && exit 1
   fi
  }
 
@@ -617,7 +646,7 @@ start_service(){
       [[ $? -ne 0 ]] && ${apt} install -y nginx
       #把配置拉过去并重启nignx
       mv ${workdir}/*pass-docker.conf /etc/nginx/conf.d
-      [[ $? -ne 0 ]] && echo "移动配置到/etc/nginx/conf.d失败" && exit 1
+      [[ $? -ne 0 ]] && echo_RedFont "移动配置到/etc/nginx/conf.d失败" && exit 1
       service nginx restart&&echo "nginx启动成功"
     fi 
   }
@@ -626,14 +655,16 @@ start_service(){
 
 check_install_docker
 check_install_nginx
-docker-compose up -d && echo 配置成功！试试看吧！&& rm ./$0
+docker-compose up -d\
+ && echo_GreenFont "Everything is ok! Now try it!"\
+ && rm ../$0
 }
 #=============================================-=============================
 
 #输出必要信息一览表
 view_info(){
   echo -e "==============================================="
-  [[ ${need_v2} == "yes" ]] && echo "
+  [[ ${need_v2} == "yes" ]] && echo_GreenFont "
   v2客户端连接信息
   类型：VMess
   地址：${v2web}
@@ -645,7 +676,7 @@ view_info(){
   "
   echo -e "==============================================="
   [[ ${need_webdav} == "yes" ]] \
-  && echo "
+  && echo_GreenFont "
   webDAV
   访问网址：${site_webdav} 
   用户名：${user_webdav}
@@ -664,7 +695,7 @@ echo
     config_depends
 echo
 echo -e "======================================================"
-echo -e "||所有选项均为yes or no,注意大小写，否则配置可能失败||"
+echo_GreenFont "||所有选项均为yes or no,注意大小写，否则配置可能失败||"
 echo -e "======================================================"
 echo -e "生成v2的启动配置？"
     read -e -p '(默认：yes):' need_v2
