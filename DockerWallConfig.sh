@@ -218,9 +218,9 @@ if [[ ${check_sslpath} == "yes" ]] ; then
 
 
 #必须检查证书是否存在
-#那么你的证书路径是/root/.acme.sh/${v2web}_ecc/${v2web}.cer
-  if [[ -f /root/.acme.sh/${v2web}_ecc/${v2web}.cer ]]\
-    && [[ -f /root/.acme.sh/${v2web}_ecc/${v2web}.key ]] ; then
+#那么你的证书路径是/root/.acme.sh/${v2web}*/${v2web}.cer
+  if [[ -f /root/.acme.sh/${v2web}*/${v2web}.cer ]]\
+    && [[ -f /root/.acme.sh/${v2web}*/${v2web}.key ]] ; then
       echo "证书路径正确"
   else
     echo_RedFont "未找到证书，请检查证书路径是否有误并重新配置"&&exit 1
@@ -230,8 +230,8 @@ if [[ ${check_sslpath} == "yes" ]] ; then
 echo "
 server {
   listen 0.0.0.0:443 ssl;
-  ssl_certificate       /root/.acme.sh/${v2web}_ecc/${v2web}.cer;
-  ssl_certificate_key   /root/.acme.sh/${v2web}_ecc/${v2web}.key;
+  ssl_certificate       /root/.acme.sh/${v2web}*/${v2web}.cer;
+  ssl_certificate_key   /root/.acme.sh/${v2web}*/${v2web}.key;
   ssl_protocols         TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
   ssl_ciphers           HIGH:!aNULL:!MD5;
   server_name           ${v2web};
@@ -257,10 +257,10 @@ server {
 ##如果ssl证书地址有变则自定义
 else
 	echo -e "请输入你的ssl_certificate路径"
-	read -e -p "例如/root/.acme.sh/web.com_ecc/web.com.cer :" ssl_certificate
+	read -e -p "例如/root/.acme.sh/web.com*/web.com.cer :" ssl_certificate
 	echo
 	echo -e "请输入你的ssl_certificate_key路径"
-	read -e -p "例如/root/.acme.sh/web.com_ecc/web.com.key :" ssl_certificate_key
+	read -e -p "例如/root/.acme.sh/web.com*/web.com.key :" ssl_certificate_key
   #开始检查证书,不合法直接退出
     if [[ -f ${ssl_certificate} ]] && [[ -f ${ssl_certificate} ]] ; then
       echo "证书路径正确"
@@ -327,12 +327,12 @@ config_webdav(){
 if [[ ${check_sslpath} == "yes" ]] ; then
 #echo "你可能需要手动编辑稍后生成的配置里的ssl证书路径"
 echo "那么你的证书路径是\
-/root/.acme.sh/${site_webdav}_ecc/${site_webdav}.cer;错误的路径将导致配置失败"
+/root/.acme.sh/${site_webdav}*/${site_webdav}.cer;错误的路径将导致配置失败"
 echo "
 server {
   listen 443 ssl;
-  ssl_certificate       /root/.acme.sh/${site_webdav}_ecc/${site_webdav}.cer;
-  ssl_certificate_key   /root/.acme.sh/${site_webdav}_ecc/${site_webdav}.key;
+  ssl_certificate       /root/.acme.sh/${site_webdav}*/${site_webdav}.cer;
+  ssl_certificate_key   /root/.acme.sh/${site_webdav}*/${site_webdav}.key;
   ssl_protocols         TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
   ssl_ciphers           HIGH:!aNULL:!MD5;
   server_name           ${site_webdav};
@@ -364,10 +364,10 @@ server {
 #生成两份配置实在麻烦，其实应该将ssl证书路径单独拎出来定义
 else
   echo -e "请输入你的ssl_certificate路径"\
-	&&read -e -p "例如/root/.acme.sh/web.com_ecc/web.com.cer :" ssl_certificate\
+	&&read -e -p "例如/root/.acme.sh/web.com*/web.com.cer :" ssl_certificate\
 	&&echo\
 	&&echo -e "请输入你的ssl_certificate_key路径"\
-	&&read -e -p "例如/root/.acme.sh/web.com_ecc/web.com.key :" ssl_certificate_key\
+	&&read -e -p "例如/root/.acme.sh/web.com*/web.com.key :" ssl_certificate_key\
 	&&echo "
 server {
   listen 443 ssl;
@@ -498,8 +498,8 @@ if [[ ${proxy_pass_docker} == "yes" ]] ; then
     echo "
 server {
   listen 443 ssl;
-  ssl_certificate       /root/.acme.sh/${v2web}_ecc/${v2web}.cer;
-  ssl_certificate_key   /root/.acme.sh/${v2web}_ecc/${v2web}.key;
+  ssl_certificate       /root/.acme.sh/${v2web}*/${v2web}.cer;
+  ssl_certificate_key   /root/.acme.sh/${v2web}*/${v2web}.key;
   ssl_protocols         TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
   ssl_ciphers           HIGH:!aNULL:!MD5;
   server_name           ${v2web};
@@ -525,8 +525,8 @@ server {
     [[ ${need_webdav} == "yes" ]]&&echo "
 server {
   listen  443 ssl;
-  ssl_certificate       /root/.acme.sh/${site_webdav}_ecc/${site_webdav}.cer;
-  ssl_certificate_key   /root/.acme.sh/${site_webdav}_ecc/${site_webdav}.key;
+  ssl_certificate       /root/.acme.sh/${site_webdav}*/${site_webdav}.cer;
+  ssl_certificate_key   /root/.acme.sh/${site_webdav}*/${site_webdav}.key;
   ssl_protocols         TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
   ssl_ciphers           HIGH:!aNULL:!MD5;
   server_name           ${site_webdav};
@@ -653,7 +653,7 @@ start_service(){
       mv ${workdir}/*pass-docker.conf /etc/nginx/conf.d
       [[ $? -ne 0 ]] && echo_RedFont "移动配置到/etc/nginx/conf.d失败" && exit 1
       service nginx restart&&echo "nginx启动成功"
-      [[ $? -ne 0 ]] && echo_RedFont "nginx启动失败，请检查宿主机ningx配置" && exit 1
+      [[ $? -ne 0 ]] && echo_RedFont "nginx启动失败，请检查宿主机ningx配置" && nginx -t && exit 1
     fi 
   }
 
