@@ -218,9 +218,9 @@ if [[ ${check_sslpath} == "yes" ]] ; then
 
 
 #必须检查证书是否存在
-#那么你的证书路径是/root/.acme.sh/${v2web}*/${v2web}.cer
-  if [[ -f /root/.acme.sh/${v2web}*/${v2web}.cer ]]\
-    && [[ -f /root/.acme.sh/${v2web}*/${v2web}.key ]] ; then
+#那么你的证书路径是/root/.acme.sh/${v2web}_ecc/${v2web}.cer
+  if [[ -f /root/.acme.sh/${v2web}_ecc/${v2web}.cer ]]\
+    && [[ -f /root/.acme.sh/${v2web}_ecc/${v2web}.key ]] ; then
       echo "证书路径正确"
   else
     echo_RedFont "未找到证书，请检查证书路径是否有误并重新配置"&&exit 1
@@ -230,8 +230,8 @@ if [[ ${check_sslpath} == "yes" ]] ; then
 echo "
 server {
   listen 0.0.0.0:443 ssl;
-  ssl_certificate       /root/.acme.sh/${v2web}*/${v2web}.cer;
-  ssl_certificate_key   /root/.acme.sh/${v2web}*/${v2web}.key;
+  ssl_certificate       /root/.acme.sh/${v2web}_ecc/${v2web}.cer;
+  ssl_certificate_key   /root/.acme.sh/${v2web}_ecc/${v2web}.key;
   ssl_protocols         TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
   ssl_ciphers           HIGH:!aNULL:!MD5;
   server_name           ${v2web};
@@ -498,8 +498,8 @@ if [[ ${proxy_pass_docker} == "yes" ]] ; then
     echo "
 server {
   listen 443 ssl;
-  ssl_certificate       /root/.acme.sh/${v2web}*/${v2web}.cer;
-  ssl_certificate_key   /root/.acme.sh/${v2web}*/${v2web}.key;
+  ssl_certificate       /root/.acme.sh/${v2web}_ecc/${v2web}.cer;
+  ssl_certificate_key   /root/.acme.sh/${v2web}_ecc/${v2web}.key;
   ssl_protocols         TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
   ssl_ciphers           HIGH:!aNULL:!MD5;
   server_name           ${v2web};
