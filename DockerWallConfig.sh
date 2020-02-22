@@ -211,7 +211,7 @@ echo -n "输入你的v2伪装网址:";read v2web
 #检查v2path是否有在config_v2中定义（如选择只生成nginx配置时，需本函数内生成）
 [[ -z "${v2path}" ]] && read -e -p "（未定义path,请先定义）:" v2path
 
-echo -e "ssl证书是否用acme.sh申请？且位于/root/.acme目录下？"
+echo -e "ssl证书是否用acme.sh申请的【ecc】证书？且位于/root/.acme目录下？"
 	read -e -p "(默认：yes):" check_sslpath
 	[[ -z "${check_sslpath}" ]] && check_sslpath="yes"
 if [[ ${check_sslpath} == "yes" ]] ; then
@@ -223,7 +223,7 @@ if [[ ${check_sslpath} == "yes" ]] ; then
     && [[ -f /root/.acme.sh/${v2web}_ecc/${v2web}.key ]] ; then
       echo "证书路径正确"
   else
-    echo_RedFont "未找到证书，请检查证书路径是否有误并重新配置"&&exit 1
+    echo_RedFont "未找到证书，请检查证书路径是否有误并重新配置（手动输入路径）"&&exit 1
   fi
 
 #证书没问题则生成配置
@@ -232,7 +232,7 @@ server {
   listen 0.0.0.0:443 ssl;
   ssl_certificate       /root/.acme.sh/${v2web}_ecc/${v2web}.cer;
   ssl_certificate_key   /root/.acme.sh/${v2web}_ecc/${v2web}.key;
-  ssl_protocols         TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
+  ssl_protocols         TLSv1 TLSv1.1 TLSv1.2;
   ssl_ciphers           HIGH:!aNULL:!MD5;
   server_name           ${v2web};
 
@@ -273,7 +273,7 @@ server {
   listen 0.0.0.0:443 ssl;
   ssl_certificate       ${ssl_certificate};
   ssl_certificate_key   ${ssl_certificate_key};
-  ssl_protocols         TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
+  ssl_protocols         TLSv1 TLSv1.1 TLSv1.2;
   ssl_ciphers           HIGH:!aNULL:!MD5;
   server_name           ${v2web};
 
@@ -333,7 +333,7 @@ server {
   listen 443 ssl;
   ssl_certificate       /root/.acme.sh/${site_webdav}*/${site_webdav}.cer;
   ssl_certificate_key   /root/.acme.sh/${site_webdav}*/${site_webdav}.key;
-  ssl_protocols         TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
+  ssl_protocols         TLSv1 TLSv1.1 TLSv1.2;
   ssl_ciphers           HIGH:!aNULL:!MD5;
   server_name           ${site_webdav};
 
@@ -373,7 +373,7 @@ server {
   listen 443 ssl;
   ssl_certificate       ${ssl_certificate};
   ssl_certificate_key   ${ssl_certificate_key};
-  ssl_protocols         TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
+  ssl_protocols         TLSv1 TLSv1.1 TLSv1.2;
   ssl_ciphers           HIGH:!aNULL:!MD5;
   server_name           ${site_webdav};
 
@@ -500,7 +500,7 @@ server {
   listen 443 ssl;
   ssl_certificate       /root/.acme.sh/${v2web}_ecc/${v2web}.cer;
   ssl_certificate_key   /root/.acme.sh/${v2web}_ecc/${v2web}.key;
-  ssl_protocols         TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
+  ssl_protocols         TLSv1 TLSv1.1 TLSv1.2;
   ssl_ciphers           HIGH:!aNULL:!MD5;
   server_name           ${v2web};
 
@@ -527,7 +527,7 @@ server {
   listen  443 ssl;
   ssl_certificate       /root/.acme.sh/${site_webdav}*/${site_webdav}.cer;
   ssl_certificate_key   /root/.acme.sh/${site_webdav}*/${site_webdav}.key;
-  ssl_protocols         TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
+  ssl_protocols         TLSv1 TLSv1.1 TLSv1.2;
   ssl_ciphers           HIGH:!aNULL:!MD5;
   server_name           ${site_webdav};
 
@@ -556,7 +556,7 @@ server {
   listen 0.0.0.0:443 ssl;
   ssl_certificate       ${ssl_certificate};
   ssl_certificate_key   ${ssl_certificate_key};
-  ssl_protocols         TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
+  ssl_protocols         TLSv1 TLSv1.1 TLSv1.2;
   ssl_ciphers           HIGH:!aNULL:!MD5;
   server_name           ${v2web};
 
@@ -585,7 +585,7 @@ server {
   listen  443 ssl;
   ssl_certificate       ${ssl_certificate};
   ssl_certificate_key   ${ssl_certificate_key};
-  ssl_protocols         TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
+  ssl_protocols         TLSv1 TLSv1.1 TLSv1.2;
   ssl_ciphers           HIGH:!aNULL:!MD5;
   server_name           ${site_webdav};
 
