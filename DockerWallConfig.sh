@@ -319,8 +319,8 @@ config_webdav(){
 	read -e -p "(设置webdav服务的账号名):" user_webdav
 	htpasswd -c ./conf.d/.htpasswd ${user_webdav}
 #检查check_sslpath是否有在config_nginx中定义，如未自行定义
-  [[ -z "${check_sslpath}" ]] && echo -e \
-  "ssl证书是否用acme.sh申请？且位于/root/.acme目录下？"\
+  [[ -f "${check_sslpath}" ]] && echo -e \
+  "ssl证书是否用acme.sh申请的【ecc】证书？且位于/root/.acme目录下？"\
   &&read -e -p "(默认：yes):" check_sslpath\
   &&[[ -z "${check_sslpath}" ]] && check_sslpath="yes"
 
