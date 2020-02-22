@@ -257,10 +257,10 @@ server {
 ##如果ssl证书地址有变则自定义
 else
 	echo -e "请输入你的ssl_certificate路径"
-	read -e -p "例如/root/.acme.sh/web.com*/web.com.cer :" ssl_certificate
+	read -e -p "例如/root/.acme.sh/web.com/web.com.cer :" ssl_certificate
 	echo
 	echo -e "请输入你的ssl_certificate_key路径"
-	read -e -p "例如/root/.acme.sh/web.com*/web.com.key :" ssl_certificate_key
+	read -e -p "例如/root/.acme.sh/web.com/web.com.key :" ssl_certificate_key
   #开始检查证书,不合法直接退出
     if [[ -f ${ssl_certificate} ]] && [[ -f ${ssl_certificate} ]] ; then
       echo "证书路径正确"
@@ -327,12 +327,12 @@ config_webdav(){
 if [[ ${check_sslpath} == "yes" ]] ; then
 #echo "你可能需要手动编辑稍后生成的配置里的ssl证书路径"
 echo "那么你的证书路径是\
-/root/.acme.sh/${site_webdav}*/${site_webdav}.cer;错误的路径将导致配置失败"
+/root/.acme.sh/${site_webdav}/${site_webdav}.cer;错误的路径将导致配置失败"
 echo "
 server {
   listen 443 ssl;
-  ssl_certificate       /root/.acme.sh/${site_webdav}*/${site_webdav}.cer;
-  ssl_certificate_key   /root/.acme.sh/${site_webdav}*/${site_webdav}.key;
+  ssl_certificate       /root/.acme.sh/${site_webdav}/${site_webdav}.cer;
+  ssl_certificate_key   /root/.acme.sh/${site_webdav}/${site_webdav}.key;
   ssl_protocols         TLSv1 TLSv1.1 TLSv1.2;
   ssl_ciphers           HIGH:!aNULL:!MD5;
   server_name           ${site_webdav};
@@ -364,10 +364,10 @@ server {
 #生成两份配置实在麻烦，其实应该将ssl证书路径单独拎出来定义
 else
   echo -e "请输入你的ssl_certificate路径"\
-	&&read -e -p "例如/root/.acme.sh/web.com*/web.com.cer :" ssl_certificate\
+	&&read -e -p "例如/root/.acme.sh/web.com/web.com.cer :" ssl_certificate\
 	&&echo\
 	&&echo -e "请输入你的ssl_certificate_key路径"\
-	&&read -e -p "例如/root/.acme.sh/web.com*/web.com.key :" ssl_certificate_key\
+	&&read -e -p "例如/root/.acme.sh/web.com/web.com.key :" ssl_certificate_key\
 	&&echo "
 server {
   listen 443 ssl;
