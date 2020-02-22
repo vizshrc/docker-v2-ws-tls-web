@@ -525,8 +525,8 @@ server {
     [[ ${need_webdav} == "yes" ]]&&echo "
 server {
   listen  443 ssl;
-  ssl_certificate       /root/.acme.sh/${site_webdav}*/${site_webdav}.cer;
-  ssl_certificate_key   /root/.acme.sh/${site_webdav}*/${site_webdav}.key;
+  ssl_certificate       /root/.acme.sh/${site_webdav}/${site_webdav}.cer;
+  ssl_certificate_key   /root/.acme.sh/${site_webdav}/${site_webdav}.key;
   ssl_protocols         TLSv1 TLSv1.1 TLSv1.2;
   ssl_ciphers           HIGH:!aNULL:!MD5;
   server_name           ${site_webdav};
